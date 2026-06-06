@@ -1,0 +1,18 @@
+if test -z "${active_slot}"; then
+    setenv active_slot a
+    saveenv
+fi
+fdt addr ${fdt_addr} && fdt get value bootargs /chosen bootargs
+
+if test "${active_slot}" = "a"; then
+    setenv rootpart 2
+    setenv active_slot "a"
+else
+    setenv rootpart 3
+    setenv active_slot "b"
+fi
+
+setenv bootargs "${bootargs} root=/dev/mmcblk0p${rootpart} rootfstype=ext4 rootwait console=ttyAMA0,115200"
+
+fatload mmc 0:1 ${kernel_addr_r} @@KERNEL_IMAGETYPE@@
+@@KERNEL_BOOTCMD@@ ${kernel_addr_r} - ${fdt_addr}

@@ -1,0 +1,6 @@
+bootloader --ptable gpt
+
+part /boot --source bootimg-partition --fstype=vfat --label boot --active --align 4 --size 128
+part /      --source rootfs           --fstype=ext4 --label rootfs_a --align 4 --size 2000
+part        --fstype=ext4             --label rootfs_b --align 4 --size 2000
+part        --fstype=ext4             --label staging  --align 4 --size 2500
