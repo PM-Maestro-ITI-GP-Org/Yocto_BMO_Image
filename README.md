@@ -21,8 +21,14 @@ source poky/oe-init-build-env
 bitbake bmo-image-ai
 ```
 
+## some errors you may face
+
+- permissions error when running the bitbake command:
+
 ![error](images/p_error.png)
 
 use this command to fix the error:
 
 ```bash
+sudo apparmor_parser -R /etc/apparmor.d/unprivileged_userns
+```
