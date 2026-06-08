@@ -15,7 +15,7 @@
 # licenses then you should change the value to separate the licenses with |
 # instead of &. If there is any doubt, check the accompanying documentation
 # to determine which situation is applicable.
-LICENSE = "GPL-3.0-only & MIT & Unknown"
+LICENSE = "GPL-3.0-only & MIT"
 LIC_FILES_CHKSUM = "file://LICENSE.MIT;md5=3b489645de9825cca5beeb9a7e18b6eb \
                     file://LICENSES/GPL-3.0-only.txt;md5=8da5784ab1c72e63ac74971f88658166 \
                     file://docs/mkdocs/docs/home/license.md;md5=0b50ae6ab6b292c61ea813fc02dafce5"
