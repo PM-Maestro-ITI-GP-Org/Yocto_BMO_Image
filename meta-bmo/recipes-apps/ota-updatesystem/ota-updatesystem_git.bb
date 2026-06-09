@@ -1,32 +1,57 @@
-# Recipe created by recipetool
-# This is the basis of a recipe and may need further editing in order to be fully functional.
-# (Feel free to remove these comments when editing.)
-
-# Unable to find any files that looked like license statements. Check the accompanying
-# documentation and source headers and set LICENSE and LIC_FILES_CHKSUM accordingly.
-#
-# NOTE: LICENSE is being set to "CLOSED" to allow you to at least start building - if
-# this is not accurate with respect to the licensing of the software being built (it
-# will not be in most cases) you must specify the correct value before using this
-# recipe for anything other than initial testing/development!
 LICENSE = "CLOSED"
 LIC_FILES_CHKSUM = ""
 
-SRC_URI = "git://git@github.com/maxmaster55/someip_OTA_update.git;protocol=ssh;branch=main"
+SRC_URI = " \
+    git://git@github.com/maxmaster55/someip_OTA_update.git;protocol=ssh;branch=main \
+    file://ota-daemon.service \
+    file://staging.mount \
+    file://config.json \
+"
 
-# Modify these as desired
 PV = "1.0+git"
-SRCREV = "3c8d539e7670b94b691e4a8baef150b825fecdb1"
+SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-# NOTE: unable to map the following CMake package dependencies: nlohmann_json CommonAPI-SomeIP CommonAPI
-DEPENDS = "openssl bzip2 zlib libcommonapi commonapi-someip nlohmann-json"
+DEPENDS = " \
+    openssl \
+    bzip2 \
+    zlib \
+    libcommonapi \
+    commonapi-someip \
+    nlohmann-json \
+"
 
 CXXFLAGS += "-include string"
 
-inherit cmake
+inherit cmake systemd
 
-# Specify any options you want to pass to cmake using EXTRA_OECMAKE:
-EXTRA_OECMAKE = ""
+SYSTEMD_AUTO_ENABLE = "enable"
 
+SYSTEMD_SERVICE:${PN} = " \
+    ota-daemon.service \
+    staging.mount \
+"
+
+do_install:append() {
+    # Install daemon config
+    install -d ${D}${sysconfdir}/ota
+    install -m 0644 ${WORKDIR}/config.json ${D}${sysconfdir}/ota/config.json
+
+    # Install service file
+    install -d ${D}${systemd_system_unitdir}
+    install -m 0644 ${WORKDIR}/ota-daemon.service ${D}${systemd_system_unitdir}/
+    
+    # Install mount staging service
+    install -d ${D}/staging
+    install -d ${D}${systemd_system_unitdir}
+    install -m 0644 ${WORKDIR}/staging.mount ${D}${systemd_system_unitdir}/
+
+}
+
+FILES:${PN} += " \
+    ${systemd_system_unitdir}/ota-daemon.service \
+    ${systemd_system_unitdir}/staging.mount \
+    ${sysconfdir}/ota/config.json \
+    /staging \
+"

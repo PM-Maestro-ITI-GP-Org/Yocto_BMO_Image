@@ -1,0 +1,11 @@
+[Unit]
+Description=Staging Partition
+
+[Mount]
+What=/dev/disk/by-label/staging
+Where=/staging
+Type=ext4
+Options=defaults,noatime
+
+[Install]
+WantedBy=multi-user.target

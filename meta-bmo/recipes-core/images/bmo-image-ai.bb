@@ -41,6 +41,13 @@ IMAGE_INSTALL:append = " \
     iw \
 "
 
-RPI_EXTRA_CONFIG:append = "\ndtoverlay=miniuart-bt\n"
+# ota
+IMAGE_INSTALL:append = " ota-updatesystem libubootenv-bin u-boot"
+# IMAGE_BOOT_FILES:append = " u-boot.bin boot.scr"
+
+# RPI_EXTRA_CONFIG:append = " \
+# kernel=u-boot.bin \n\
+# dtoverlay=miniuart-bt \n\
+# "
 
 IMAGE_INSTALL:append = " hello-world"
