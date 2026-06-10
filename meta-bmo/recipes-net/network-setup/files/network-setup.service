@@ -8,9 +8,9 @@ Wants=network-online.target
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/sbin/ip link set eth0 up
-ExecStart=/sbin/ip addr add 192.168.2.2/24 dev eth0
+ExecStart=/sbin/ip addr add 192.168.2.2/16 dev eth0
 ExecStart=/sbin/ip link set eth0 multicast on
-ExecStart=/sbin/ip route add 224.0.0.0/4 dev eth0
+ExecStart=/bin/route add -nv  224.244.224.245 dev eth0
 
 [Install]
 WantedBy=multi-user.target

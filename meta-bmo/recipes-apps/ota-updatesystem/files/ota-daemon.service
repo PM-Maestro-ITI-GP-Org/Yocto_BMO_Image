@@ -1,6 +1,6 @@
 [Unit]
 Description=OTA Update Daemon
-After=staging.mount network-setup.service network-online.target
+After=staging.mount network-setup.service
 Wants=network-online.target
 Requires=staging.mount
 Requires=network-setup.service
