@@ -6,6 +6,7 @@ SRC_URI = " \
     file://ota-daemon.service \
     file://staging.mount \
     file://config.json \
+    file://client.json \
 "
 
 PV = "1.0+git"
@@ -38,6 +39,10 @@ do_install:append() {
     install -d ${D}${sysconfdir}/ota
     install -m 0644 ${WORKDIR}/config.json ${D}${sysconfdir}/ota/config.json
 
+    # Install someip config
+    install -d ${D}${sysconfdir}/ota
+    install -m 0644 ${WORKDIR}/client.json ${D}${sysconfdir}/ota/client.json
+
     # Install service file
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/ota-daemon.service ${D}${systemd_system_unitdir}/
@@ -53,5 +58,6 @@ FILES:${PN} += " \
     ${systemd_system_unitdir}/ota-daemon.service \
     ${systemd_system_unitdir}/staging.mount \
     ${sysconfdir}/ota/config.json \
+    ${sysconfdir}/ota/client.json \
     /staging \
 "
