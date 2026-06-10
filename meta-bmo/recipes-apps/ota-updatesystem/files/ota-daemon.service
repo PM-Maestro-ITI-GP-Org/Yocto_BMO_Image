@@ -8,7 +8,7 @@ Requires=network-setup.service
 [Service]
 Type=simple
 Environment=VSOMEIP_APPLICATION_NAME=ota_daemon
-Environment=VSOMEIP_CONFIGURATION=/etc/ota/config.json
+Environment=VSOMEIP_CONFIGURATION=/etc/ota/client.json
 
 ExecStart=/usr/bin/ota_daemon /etc/ota/config.json
 
