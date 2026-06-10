@@ -6,7 +6,16 @@ Requires=staging.mount
 
 [Service]
 Type=simple
+Environment=VSOMEIP_APPLICATION_NAME=ota_daemon
+Environment=VSOMEIP_CONFIGURATION=/etc/ota/config.json
+
+ExecStartPre=/sbin/ip link set eth0 up
+ExecStartPre=/sbin/ip addr add 192.168.2.2/24 dev eth0
+ExecStartPre=/sbin/ip link set eth0 multicast on
+ExecStartPre=/sbin/ip route add 224.0.0.0/4 dev eth0
+
 ExecStart=/usr/bin/ota_daemon /etc/ota/config.json
+
 Restart=on-failure
 RestartSec=10
 
