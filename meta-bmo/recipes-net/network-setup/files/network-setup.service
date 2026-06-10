@@ -1,0 +1,16 @@
+[Unit]
+Description=Static Network Setup for eth0
+After=network.target
+Before=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/sbin/ip link set eth0 up
+ExecStart=/sbin/ip addr add 192.168.2.2/24 dev eth0
+ExecStart=/sbin/ip link set eth0 multicast on
+ExecStart=/sbin/ip route add 224.0.0.0/4 dev eth0
+
+[Install]
+WantedBy=multi-user.target

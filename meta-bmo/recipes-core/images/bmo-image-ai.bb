@@ -42,7 +42,7 @@ IMAGE_INSTALL:append = " \
 "
 
 # ota
-IMAGE_INSTALL:append = " ota-updatesystem libubootenv-bin u-boot"
+IMAGE_INSTALL:append = " network-setup ota-updatesystem libubootenv-bin u-boot"
 # IMAGE_BOOT_FILES:append = " u-boot.bin boot.scr"
 
 # RPI_EXTRA_CONFIG:append = " \
