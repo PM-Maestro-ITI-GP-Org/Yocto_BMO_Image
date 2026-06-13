@@ -18,3 +18,7 @@
 	path = meta-tensorflow
 	url = https://git.yoctoproject.org/meta-tensorflow
 	branch = scarthgap
+[submodule "meta-rauc"]
+	path = meta-rauc
+	url = git@github.com:rauc/meta-rauc.git
+	branch = scarthgap
