@@ -9,6 +9,7 @@ SRCREV = "86dfd69802e673d00aed0062f41eddea4670b571"
 S = "${WORKDIR}/git"
 
 DEPENDS = "boost vsomeip commonapi-core"
+PROVIDES = "CommonAPI-SomeIP"
 RDEPENDS_${PN}-dev = "vsomeip"
 
 inherit cmake pkgconfig lib_package

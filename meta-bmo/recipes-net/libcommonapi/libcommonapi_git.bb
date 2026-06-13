@@ -11,7 +11,7 @@ S = "${WORKDIR}/git"
 
 DEPENDS = "boost"
 
-PROVIDES = "commonapi3 commonapi-core"
+PROVIDES = "commonapi3 commonapi-core CommonAPI"
 
 inherit cmake pkgconfig lib_package
 
