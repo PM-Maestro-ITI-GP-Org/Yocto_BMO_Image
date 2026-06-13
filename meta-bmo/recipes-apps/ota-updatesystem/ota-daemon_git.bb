@@ -21,8 +21,8 @@ SRC_URI = "\
 "
 
 # Modify these as desired
-PV = "1.0+git"
-SRCREV = "b4fec71a9223a53f51ec105fcfd205a030196dce"
+PV = "1.1+git"
+SRCREV = "b1ab7f6715473497d4f50348911c874083440cfe"
 
 S = "${WORKDIR}/git/daemon"
 
