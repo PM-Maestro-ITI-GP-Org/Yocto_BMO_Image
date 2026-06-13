@@ -1,10 +1,10 @@
 {
     "downloadPath": "/staging",
     "decompressionPath": "/other_rootfs",
+    "decompressionMode": "post",
     "chunkSize": 1416,
-    "checkIntervalSec": 30,
+    "checkIntervalSec": 60,
     "autoDecompress": true,
-    "autoCleanup": true,
-    "serviceDomain": "local",
-    "serviceInstance": "manager.updater.Updater"
+    "autoCleanup": true
 }
+
