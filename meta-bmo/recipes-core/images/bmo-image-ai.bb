@@ -30,6 +30,7 @@ IMAGE_INSTALL:append = " \
     python3-pillow \
     python3-numpy \
     python3-pandas \
+    python3-pip \
 "
 
 # RPI firmware and bluetooth
@@ -42,7 +43,9 @@ IMAGE_INSTALL:append = " \
 "
 
 # ota
-IMAGE_INSTALL:append = " network-setup ota-daemon libubootenv-bin u-boot"
+IMAGE_INSTALL:append = " network-setup libubootenv-bin u-boot"
+IMAGE_INSTALL:append = " rauc home"
+# IMAGE_INSTALL:append = " ota-daemon"
 # IMAGE_BOOT_FILES:append = " u-boot.bin boot.scr"
 
 # RPI_EXTRA_CONFIG:append = " \

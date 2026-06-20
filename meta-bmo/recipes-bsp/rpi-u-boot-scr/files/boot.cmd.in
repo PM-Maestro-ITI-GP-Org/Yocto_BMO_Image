@@ -1,18 +1,50 @@
-if test -z "${active_slot}"; then
-    setenv active_slot a
-    saveenv
-fi
-fdt addr ${fdt_addr} && fdt get value bootargs /chosen bootargs
+# boot.cmd — RAUC A/B slot selection for raspberrypi3-64
+# boot=mmcblk0p1 (FAT, shared kernel+dtb), rootfs A=mmcblk0p2, rootfs B=mmcblk0p3
+# bootname in system.conf is uppercase A/B — rauc.slot= must match exactly.
 
-if test "${active_slot}" = "a"; then
-    setenv rootpart 2
-    setenv active_slot "a"
+test -n "${BOOT_ORDER}" || setenv BOOT_ORDER "A B"
+test -n "${BOOT_A_LEFT}" || setenv BOOT_A_LEFT 3
+test -n "${BOOT_B_LEFT}" || setenv BOOT_B_LEFT 3
+
+setenv rootpart
+setenv rauc_slot
+
+for BOOT_SLOT in ${BOOT_ORDER}; do
+  if test "x${rootpart}" != "x"; then
+    # already picked a slot this boot, skip the rest
+  elif test "x${BOOT_SLOT}" = "xA"; then
+    if test ${BOOT_A_LEFT} -gt 0; then
+      echo "Found valid slot A, ${BOOT_A_LEFT} attempts remaining"
+      setexpr BOOT_A_LEFT ${BOOT_A_LEFT} - 1
+      setenv rootpart 2
+      setenv rauc_slot A
+    fi
+  elif test "x${BOOT_SLOT}" = "xB"; then
+    if test ${BOOT_B_LEFT} -gt 0; then
+      echo "Found valid slot B, ${BOOT_B_LEFT} attempts remaining"
+      setexpr BOOT_B_LEFT ${BOOT_B_LEFT} - 1
+      setenv rootpart 3
+      setenv rauc_slot B
+    fi
+  fi
+done
+
+if test -n "${rootpart}"; then
+  saveenv
 else
-    setenv rootpart 3
-    setenv active_slot "b"
+  echo "No valid slot found, resetting tries to 3"
+  setenv BOOT_A_LEFT 3
+  setenv BOOT_B_LEFT 3
+  saveenv
+  reset
 fi
 
-setenv bootargs "${bootargs} root=/dev/mmcblk0p${rootpart} rootfstype=ext4 rootwait console=ttyAMA0,115200"
+# --- boot the selected slot ---
+# bootargs is set explicitly here rather than appended to /chosen/bootargs,
+# to avoid duplicate root=/rootfstype=/rootwait/console= tokens on the cmdline.
 
+setenv bootargs "coherent_pool=1M 8250.nr_uarts=1 snd_bcm2835.enable_headphones=1 snd_bcm2835.enable_hdmi=1 cgroup_disable=memory clk_ignore_unused vc_mem.mem_base=0x3ec00000 vc_mem.mem_size=0x40000000 dwc_otg.lpm_enable=0 net.ifnames=0 root=/dev/mmcblk0p${rootpart} rootfstype=ext4 rootwait console=ttyAMA0,115200 rauc.slot=${rauc_slot}"
+
+echo "Loading kernel for slot ${rauc_slot}"
 fatload mmc 0:1 ${kernel_addr_r} @@KERNEL_IMAGETYPE@@
 @@KERNEL_BOOTCMD@@ ${kernel_addr_r} - ${fdt_addr}
