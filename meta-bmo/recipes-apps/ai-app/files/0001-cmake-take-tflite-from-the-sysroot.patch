@@ -1,0 +1,55 @@
+Take TFLite from the sysroot instead of $HOME
+
+The project pointed its include and link paths at a hand-built TFLite tree
+under $ENV{HOME}, which does not exist when cross-compiling under Yocto, and
+globbed ~100 static libs out of it. Link the shared libtensorflowlite.so
+staged into the sysroot instead.
+
+Upstream-Status: Inappropriate [configuration]
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 526125a..45b57ec 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -25,34 +25,14 @@ add_executable(test_time_freq_features test/test_time_freq_features.cpp ${KISSFF
+ add_executable(motor_infer src/main.cpp ${KISSFFT_SOURCES})
+ 
+ # ---- TFLite linking ----
+-set(TFLITE_SRC_DIR "$ENV{HOME}/tensorflow")
+-set(TFLITE_BUILD_DIR "$ENV{HOME}/tflite_build")
+-
+-target_include_directories(motor_infer PRIVATE
+-    ${TFLITE_SRC_DIR}
+-    ${TFLITE_BUILD_DIR}/flatbuffers/include
+-    ${TFLITE_BUILD_DIR}/abseil-cpp
+-)
+-
+-target_link_directories(motor_infer PRIVATE ${TFLITE_BUILD_DIR})
+-
+-# TFLite's CMake build produces 100+ small static libs (abseil alone
+-# splits into ~90) with circular dependencies between them. Glob them
+-# all and wrap in --start-group/--end-group so the linker resolves
+-# cross-references regardless of link order.
+-#
+-# fft2d_fft4f2d is excluded: it and fft2d_fftsg both define the same
+-# internal helper symbols (makewt, makect, bitrv2) -- they're
+-# alternative/incompatible variants of the same algorithm family, not
+-# meant to be linked together. TFLite's actual FFT-based ops
+-# (spectrogram, mfcc) only need fftsg.
+-file(GLOB_RECURSE TFLITE_ALL_LIBS "${TFLITE_BUILD_DIR}/*.a")
+-list(FILTER TFLITE_ALL_LIBS EXCLUDE REGEX ".*fft2d_fft4f2d\\.a$")
++# TFLite headers and libtensorflowlite.so are taken from the sysroot, so no
++# explicit include or link directories are needed here. The shared library
++# resolves its own internals, which is why the static-lib glob and the
++# --start-group wrapper this used to need are both gone.
++find_library(TFLITE_LIB tensorflowlite REQUIRED)
+ 
+ target_link_libraries(motor_infer PRIVATE
+-    -Wl,--start-group
+-    ${TFLITE_ALL_LIBS}
+-    -Wl,--end-group
++    ${TFLITE_LIB}
+     pthread
+     dl
+ )
+\ No newline at end of file

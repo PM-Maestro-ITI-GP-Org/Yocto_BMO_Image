@@ -1,0 +1,74 @@
+Locate the models directory beside the executable
+
+Model paths were hardcoded relative to the working directory ("../models"),
+which only resolves when run from the build directory. Derive them from
+/proc/self/exe so the installed app finds the models dir shipped next to it.
+
+Upstream-Status: Inappropriate [configuration]
+
+diff --git a/src/main.cpp b/src/main.cpp
+index 8d0ba45..51ae0e2 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -46,6 +46,8 @@
+ #include <string>
+ #include <vector>
+ #include <cstring>
++#include <limits.h>
++#include <unistd.h>
+ #include "feature_extraction.hpp"
+ #include "adc_conversion.hpp"
+ #include "io_utils.hpp"
+@@ -82,6 +84,26 @@ inline std::vector<double> dedup_held_signal(const std::vector<double> &raw)
+     return out;
+ }
+ 
++// Resolve a file in the models directory that sits beside this executable.
++// Deriving it from /proc/self/exe rather than a path relative to the current
++// working directory means the app works when invoked from anywhere, not just
++// from the build directory.
++static std::string model_path(const std::string &name)
++{
++    char buf[PATH_MAX];
++    ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
++    if (len <= 0)
++        return "models/" + name;
++    buf[len] = '\0';
++
++    std::string exe(buf);
++    size_t slash = exe.find_last_of('/');
++    if (slash == std::string::npos)
++        return "models/" + name;
++
++    return exe.substr(0, slash) + "/models/" + name;
++}
++
+ int main(int argc, char **argv)
+ {
+     if (argc < 2)
+@@ -158,9 +180,9 @@ int main(int argc, char **argv)
+ 
+     // ---- 3. Load model config (feature order, scaler, classes) ----
+     ModelConfig cfg = load_model_config(
+-        "../models/cnn_feature_order.json",
+-        "../models/cnn_scaler.json",
+-        "../models/cnn_classes.json");
++        model_path("cnn_feature_order.json"),
++        model_path("cnn_scaler.json"),
++        model_path("cnn_classes.json"));
+ 
+     std::cout << "Model expects " << cfg.feature_order.size() << " features, "
+               << cfg.classes.size() << " classes\n";
+@@ -191,9 +213,10 @@ int main(int argc, char **argv)
+     }
+ 
+ // ---- 6. TFLite inference ----
+-    auto model = tflite::FlatBufferModel::BuildFromFile("../models/cnn_model_noleak.tflite");
++    const std::string tflite_path = model_path("cnn_model_noleak.tflite");
++    auto model = tflite::FlatBufferModel::BuildFromFile(tflite_path.c_str());
+     if (!model) {
+-        std::cerr << "ERROR: failed to load ../models/cnn_model_noleak.tflite\n";
++        std::cerr << "ERROR: failed to load " << tflite_path << "\n";
+         return 1;
+     }
+ 

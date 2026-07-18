@@ -32,6 +32,7 @@ IMAGE_INSTALL:append = " \
     python3-pandas \
     python3-pip \
     python3-flask \
+    ai-app \
 "
 
 # RPI firmware and bluetooth
