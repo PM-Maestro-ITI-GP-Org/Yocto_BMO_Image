@@ -22,3 +22,7 @@
 	path = meta-rauc
 	url = git@github.com:rauc/meta-rauc.git
 	branch = scarthgap
+[submodule "meta-lts-mixins-u-boot"]
+	path = meta-lts-mixins-u-boot
+	url = https://git.yoctoproject.org/meta-lts-mixins
+	branch = scarthgap/u-boot
