@@ -26,3 +26,14 @@
 	path = meta-lts-mixins-u-boot
 	url = https://git.yoctoproject.org/meta-lts-mixins
 	branch = scarthgap/u-boot
+[submodule "meta-qnx"]
+	path = meta-qnx
+	url = https://github.com/maxmaster55/meta-qnx.git
+[submodule "meta-qnx-hyp"]
+	path = meta-qnx-hyp
+	url = git@github.com:maxmaster55/meta-qnx-hyp.git
+	branch = main
+[submodule "meta-qnx-guest"]
+	path = meta-qnx-guest
+	url = git@github.com:maxmaster55/meta-qnx-guest.git
+	branch = main
