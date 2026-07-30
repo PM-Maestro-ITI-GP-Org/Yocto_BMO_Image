@@ -1,0 +1,22 @@
+[Unit]
+Description=Motor AI SOME/IP service (guest-2)
+Documentation=https://github.com/PM-Maestro-ITI-GP-Org/motor_ai_server
+# vsomeip binds the "unicast" address from its config at startup and exits if it
+# does not exist yet. That address (10.0.2.2, the guest_to_guest link to the QNX
+# guest) is brought up by network-setup, so ordering after it is not cosmetic --
+# without it the service loses a boot race roughly every time.
+After=network-setup.service
+Requires=network-setup.service
+
+[Service]
+Type=simple
+Environment=VSOMEIP_CONFIGURATION=/etc/motor-ai-server/vsomeip.json
+Environment=COMMONAPI_CONFIG=/etc/motor-ai-server/commonapi.ini
+ExecStart=/usr/bin/motor_ai_server
+# The service retries registerService() in a loop rather than exiting, so a
+# restart here is for genuine crashes only.
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

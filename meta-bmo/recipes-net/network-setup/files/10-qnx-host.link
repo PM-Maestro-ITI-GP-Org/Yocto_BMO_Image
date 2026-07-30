@@ -1,0 +1,15 @@
+# Pin the name of the virtio-net link to the QNX hypervisor host.
+#
+# This guest has two virtio-net devices and the kernel names them in probe
+# order, which is not guaranteed to be stable -- so "eth0" is not a reliable way
+# to say "the one facing the host". Matching on the MAC is.
+#
+# The address MUST equal QNX_LINUX_GUEST_MAC in meta-qnx-hyp's
+# qnx-linux-guest_1.0.bb, which is what qvm hands this vdev. If that is
+# overridden in build-qnx/conf/local.conf, change it here too or the interface
+# keeps its kernel name and network-setup silently skips it.
+[Match]
+MACAddress=52:54:00:00:01:02
+
+[Link]
+Name=qhost0

@@ -1,0 +1,12 @@
+# Pin the name of the direct virtio-net link to the QNX guest (guest-1).
+#
+# This link bypasses the host entirely: its peer is /dev/qvm/guest_1/guest_to_guest,
+# and it is the link motor-ai-server serves SOME/IP on.
+#
+# The address MUST equal QNX_LINUX_GUEST_MAC2 in meta-qnx-hyp's
+# qnx-linux-guest_1.0.bb -- see 10-qnx-host.link for what happens when it does not.
+[Match]
+MACAddress=52:54:00:00:02:02
+
+[Link]
+Name=qguest0
