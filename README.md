@@ -32,7 +32,7 @@ git submodule update --init --recursive
   `meta-bmo`
 - [hypervisor-guest.md](docs/hypervisor-guest.md) — running as guest-2 under
   qvm: the SOME/IP pair, the addresses that have to agree with the QNX tree, and
-  the sstate trap that will otherwise ship a stale rootfs
+  how a rebuild here reaches the target
 - [ota.md](docs/ota.md) — the RAUC A/B layout, slots and bundles
 
 ## The one non-obvious thing
