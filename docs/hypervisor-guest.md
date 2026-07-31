@@ -101,16 +101,46 @@ bmo-image-ai-qemuarm64.rootfs.ext4  → /guests/guest-2/fs.img
 Both are the unversioned symlinks Yocto keeps pointing at the newest build, so a
 rebuild here is picked up without editing anything there.
 
-> **The one real trap.** The QNX recipe hashes the *variables* naming those
-> files, not the files' *contents*. Rebuilding this image produces a new rootfs
-> at the same path and an identical task signature, so bitbake reuses sstate and
-> ships the **old** `fs.img` without a word. After rebuilding here, the QNX side
-> needs `bitbake -c cleansstate qnx-linux-guest qnx-host-data` before its disk
-> image, or the change will not be on the card.
+A rebuild here is picked up automatically. `qnx-linux-guest` carries a
+`do_install[file-checksums]` on both absolute paths, so the *contents* of the
+kernel and rootfs are part of its task signature, and the change propagates down
+the dependency chain to the disk image on its own.
+
+> **Historical note.** That was not always true. The recipe originally hashed
+> only the *variables* naming the files, which are identical across rebuilds —
+> the names are unversioned symlinks. A rebuilt rootfs therefore produced the
+> same signature, bitbake restored `do_install` from sstate, and the disk went
+> out carrying the **previous** rootfs with no error and no warning. If you are
+> on a checkout of the QNX tree predating that fix, run
+> `bitbake -c cleansstate qnx-linux-guest qnx-host-data` before building the
+> disk. Check for `file-checksums` in `qnx-linux-guest_1.0.bb` to tell which
+> you have.
 
 `root=/dev/vda` in the guest's kernel command line relies on the rootfs being a
 raw filesystem image rather than a partitioned disk — a `.rootfs.ext4`, not a
 `.wic`. That is why `IMAGE_FSTYPES` must keep producing ext4.
+
+## The hypervisor has to be 8.0.4 or newer
+
+Nothing in this repository can fix it if it is not, so it is worth knowing what
+the failure looks like from this side. The Pi 5 is GICv2, and a guest has to be
+told so — `vdev gic / version 2` in its qvmconf. QNX Hypervisor **8.0** rejects
+that value outright, and with no stanza at all qvm offers a memory-mapped GICv3
+that Linux's `gic-v3` driver cannot drive. This image then panics early, before
+any of its own userspace runs:
+
+```
+GICv3: CPU0: found redistributor 0 region 0:0x000000002f100000
+Internal error: Oops - Undefined instruction
+pc : gic_cpu_sys_reg_init+0x5c/0x2b8
+```
+
+That is `MRS x0, ICC_SRE_EL1` — the GICv3 CPU system-register interface, which
+this hardware does not provide. It is not a kernel configuration problem and no
+change to `bmo-image-ai` affects it.
+
+Hypervisor **8.0.4 Update 1** accepts GICv2 and the image boots. The QNX tree's
+`qnx-linux-guest_1.0.bb` carries the disassembly of both versions.
 
 ## Debugging from this side
 
