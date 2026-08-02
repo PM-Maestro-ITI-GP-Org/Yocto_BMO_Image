@@ -13,13 +13,20 @@ LICENSE = "CLOSED"
 # 10.0.2.2, the guest_to_guest address configured by network-setup.
 SRC_URI = "git://git@github.com/PM-Maestro-ITI-GP-Org/motor_ai_server.git;protocol=ssh;branch=main \
            file://motor-ai-server.service \
+           file://server.conf \
 "
 
 # Pinned rather than AUTOREV so the two halves of the SOME/IP pair cannot drift:
 # the interface definitions live in both repositories, and a client generated
 # from a different .fidl than the server fails at runtime, not at build time.
-# Same commit the QNX side pins in build-qnx/conf/local.conf.
-SRCREV = "c462d3886cf0fc489b7c7521fbdb65234a156886"
+#
+# The client is pinned the same way, as QNX_SRC_REV:pn-motor-ai-client in
+# build-qnx/conf/local.conf. They are separate repositories with separate
+# histories, so the two revisions have nothing to do with each other -- what
+# has to match is interface/MotorDataService.{fidl,fdepl}. Before bumping
+# either side, diff that directory: if it is untouched, the other side does
+# not need rebuilding.
+SRCREV = "02f8bb46d73a88a7695382a4f72fe07480e3e977"
 PV = "1.0+git"
 
 S = "${WORKDIR}/git"
@@ -30,6 +37,12 @@ S = "${WORKDIR}/git"
 DEPENDS = "libcommonapi commonapi-someip vsomeip boost commonapi-generators-native"
 # Appended, not assigned: the systemd class contributes to this too.
 RDEPENDS:${PN} += "libcommonapi commonapi-someip vsomeip"
+
+# ai-app ships /usr/bin/motor-ai-infer, which this service execs once per
+# completed window (infer_command in server.conf). Without it the service runs,
+# accepts batches and logs a failure per window -- a runtime symptom for what is
+# really a packaging fact, so it is stated as a dependency instead.
+RDEPENDS:${PN} += "ai-app"
 
 inherit cmake pkgconfig systemd
 
@@ -74,6 +87,12 @@ do_install() {
 		${D}${sysconfdir}/motor-ai-server/vsomeip.json
 	install -m 0644 ${S}/interface/commonapi4someip.ini \
 		${D}${sysconfdir}/motor-ai-server/commonapi.ini
+
+	# Window size, where the CSVs go, and which command runs the inference.
+	# Beside the other two configs so that everything tunable about this
+	# service is in one directory.
+	install -m 0644 ${WORKDIR}/server.conf \
+		${D}${sysconfdir}/motor-ai-server/server.conf
 
 	install -d ${D}${systemd_system_unitdir}
 	install -m 0644 ${WORKDIR}/motor-ai-server.service \

@@ -3,9 +3,12 @@ LICENSE = "CLOSED"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
+# 0002-find-models-beside-the-executable.patch is gone: resolving the models
+# directory from /proc/self/exe is upstream now. It had to be -- the server
+# execs this from whatever working directory systemd left it in, so "../models"
+# was never going to be a Yocto-only concern.
 SRC_URI = "git://git@github.com/PM-Maestro-ITI-GP-Org/AI.git;protocol=ssh;branch=abdelrahman \
            file://0001-cmake-take-tflite-from-the-sysroot.patch \
-           file://0002-find-models-beside-the-executable.patch \
 "
 
 PV = "1.0+git"
@@ -25,6 +28,12 @@ inherit cmake
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/motor_infer ${D}${bindir}/
+
+    # The command motor-ai-server execs, and the only name it knows. It resolves
+    # motor_infer beside itself, so both have to land in the same directory --
+    # which is also why it is installed here rather than being left to the
+    # server's config to point at a build path.
+    install -m 0755 ${S}/scripts/motor-ai-infer ${D}${bindir}/
 
     install -d ${D}${bindir}/models
     install -m 0644 ${S}/models/* ${D}${bindir}/models/

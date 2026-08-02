@@ -12,6 +12,12 @@ Requires=network-setup.service
 Type=simple
 Environment=VSOMEIP_CONFIGURATION=/etc/motor-ai-server/vsomeip.json
 Environment=COMMONAPI_CONFIG=/etc/motor-ai-server/commonapi.ini
+Environment=MOTOR_AI_SERVER_CONFIG=/etc/motor-ai-server/server.conf
+# /var/lib/motor-ai, where the window CSVs handed to the AI app are written.
+# systemd creates it with the right ownership on every start, so the directory
+# is a property of the unit rather than something the daemon has to mkdir and
+# get the permissions right for. Must agree with csv_dir in server.conf.
+StateDirectory=motor-ai
 ExecStart=/usr/bin/motor_ai_server
 # The service retries registerService() in a loop rather than exiting, so a
 # restart here is for genuine crashes only.
