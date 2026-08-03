@@ -16,17 +16,18 @@ SRC_URI = "git://git@github.com/PM-Maestro-ITI-GP-Org/motor_ai_server.git;protoc
            file://server.conf \
 "
 
-# Pinned rather than AUTOREV so the two halves of the SOME/IP pair cannot drift:
-# the interface definitions live in both repositories, and a client generated
-# from a different .fidl than the server fails at runtime, not at build time.
+# Tracks the branch head, like every other application here.
 #
-# The client is pinned the same way, as QNX_SRC_REV:pn-motor-ai-client in
-# build-qnx/conf/local.conf. They are separate repositories with separate
-# histories, so the two revisions have nothing to do with each other -- what
-# has to match is interface/MotorDataService.{fidl,fdepl}. Before bumping
-# either side, diff that directory: if it is untouched, the other side does
-# not need rebuilding.
-SRCREV = "02f8bb46d73a88a7695382a4f72fe07480e3e977"
+# Worth knowing what that gives up. This is one half of a SOME/IP pair: the
+# interface definitions live in BOTH this repository and motor_ai_client's, and
+# a client generated from a different .fidl than the server does not fail to
+# build -- it fails on the board, as a call that never completes. While both
+# sides were pinned, that could not happen by accident. Now the two move
+# independently and nothing checks they still agree.
+#
+# So: after changing interface/MotorDataService.{fidl,fdepl} on either side,
+# rebuild both. If that directory is untouched, the other side is unaffected.
+SRCREV = "${AUTOREV}"
 PV = "1.0+git"
 
 S = "${WORKDIR}/git"
