@@ -38,6 +38,16 @@ IMAGE_INSTALL:append = " \
 # the guest_to_guest link.
 IMAGE_INSTALL:append = " motor-ai-server"
 
+# hms on the QNX host manages this guest over ssh, and that is key-based. Its
+# public key goes into /home/root/.ssh/authorized_keys -- /home/root because
+# that is root's home in poky and where dropbear looks, not /root.
+#
+# The matching private half is on the host, installed by meta-qnx's
+# QNX_SSH_IDENTITY. The same public key is authorised by the QNX guest through
+# meta-qnx-hyp/conf/hms-ssh-key.inc; the two must stay identical or hms reaches
+# one guest and not the other.
+IMAGE_INSTALL:append = " hms-ssh-key"
+
 # ota
 # rauc and the u-boot env tooling are machine-neutral; the slot devices they
 # act on are set per-machine in rauc-conf.bbappend.
