@@ -15,7 +15,7 @@ LICENSE = "CLOSED"
 # local.conf if the pair is ever regenerated:
 #
 #     HMS_PUBKEY = "ssh-ed25519 AAAA... hms@hypervisor"
-HMS_PUBKEY ?= "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ63lkUzvugd3TnG6SQDUD4QYZH9iU5c+HihwiLP9D79 hms@hypervisor"
+HMS_PUBKEY ?= "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINjet1l4AgueqR+EnUmlXw2yQcSckVrqIFQJ9RWLsd9y hms@hypervisor"
 
 # /home/root, not /root. This is poky's layout -- /etc/passwd gives root
 # /home/root -- and it is where dropbear looks, this image having dropbear
