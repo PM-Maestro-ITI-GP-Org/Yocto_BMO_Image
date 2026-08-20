@@ -1,10 +1,13 @@
 SUMMARY = "CommonAPI/SOME/IP motor data service"
-DESCRIPTION = "Serves motor telemetry over SOME/IP to the QNX guest's \
-motor_ai_client: logs each batch to CSV, runs the AI pipeline (anomaly \
-detection, fault classification, predictive maintenance) and replies with the \
-results. Its CMakeLists runs the CommonAPI generators at configure time to turn \
-the .fidl/.fdepl interface definitions into C++ bindings, then builds them \
-alongside the service."
+DESCRIPTION = "Two programs from one repository. motor_ai_server takes motor \
+telemetry over SOME/IP from the QNX guest's motor_ai_client, writes each \
+completed window to /motor_data/input_data/data.csv and asks motor_ai_node for \
+a verdict by signal -- anomaly always, fault classification and remaining \
+useful life only when the first says something other than normal -- then \
+replies with all three. motor_ai_node is packaged \
+separately, by the motor-ai-node recipe. The service's CMakeLists runs the CommonAPI generators at \
+configure time to turn the .fidl/.fdepl interface definitions into C++ \
+bindings, then builds them alongside it."
 LICENSE = "CLOSED"
 
 # This is the Linux half of a pair. The client is built for QNX by
@@ -13,7 +16,6 @@ LICENSE = "CLOSED"
 # 10.0.2.2, the guest_to_guest address configured by network-setup.
 SRC_URI = "git://git@github.com/PM-Maestro-ITI-GP-Org/motor_ai_server.git;protocol=ssh;branch=main \
            file://motor-ai-server.service \
-           file://server.conf \
 "
 
 # Tracks the branch head, like every other application here.
@@ -39,11 +41,21 @@ DEPENDS = "libcommonapi commonapi-someip vsomeip boost commonapi-generators-nati
 # Appended, not assigned: the systemd class contributes to this too.
 RDEPENDS:${PN} += "libcommonapi commonapi-someip vsomeip"
 
-# ai-app ships /usr/bin/motor-ai-infer, which this service execs once per
-# completed window (infer_command in server.conf). Without it the service runs,
-# accepts batches and logs a failure per window -- a runtime symptom for what is
-# really a packaging fact, so it is stated as a dependency instead.
-RDEPENDS:${PN} += "ai-app"
+# The service no longer spawns anything. It writes the window and signals a
+# long-running node, which is its own recipe built from its own repository --
+# motor_ai_node shares nothing with this one but the directory the two meet in.
+#
+# A runtime dependency and not a build one: nothing here includes or links
+# against it. It is stated at all because a window with no live node is a
+# per-window timeout and a stale verdict, which is a runtime symptom for what
+# is really a packaging fact.
+#
+# ai-app is deliberately not here any more. It ships /usr/bin/motor-ai-infer,
+# a run-once-and-exit program built around the old infer_command contract;
+# nothing signals it and nothing execs it now. It is the real models, though,
+# so the intended end state is a signal-driven build of that repository
+# replacing motor-ai-node -- which is then a change to this one line.
+RDEPENDS:${PN} += "motor-ai-node"
 
 inherit cmake pkgconfig systemd
 
@@ -89,10 +101,16 @@ do_install() {
 	install -m 0644 ${S}/interface/commonapi4someip.ini \
 		${D}${sysconfdir}/motor-ai-server/commonapi.ini
 
-	# Window size, where the CSVs go, and which command runs the inference.
+	# Window size, the shared directory, the pidfile and the three signals.
 	# Beside the other two configs so that everything tunable about this
 	# service is in one directory.
-	install -m 0644 ${WORKDIR}/server.conf \
+	#
+	# From ${S} rather than from a copy in this layer. It used to be a
+	# file:// in SRC_URI, which meant the defaults compiled into the server
+	# and the defaults shipped to the board were maintained in two places --
+	# and the four keys that have to agree with the node's node.conf were
+	# documented in whichever of the two the reader happened to open.
+	install -m 0644 ${S}/server/server.conf \
 		${D}${sysconfdir}/motor-ai-server/server.conf
 
 	install -d ${D}${systemd_system_unitdir}

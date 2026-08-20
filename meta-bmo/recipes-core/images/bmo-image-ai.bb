@@ -48,6 +48,12 @@ IMAGE_INSTALL:append = " motor-ai-server"
 # one guest and not the other.
 IMAGE_INSTALL:append = " hms-ssh-key"
 
+# (G2) in front of the prompt. The three shells on this board -- the QNX host,
+# guest-1 and this one -- are otherwise indistinguishable, and each can be
+# ssh'd into from the others. The QNX side does the same through
+# QNX_IFS_PROMPT.
+IMAGE_INSTALL:append = " shell-prompt"
+
 # ota
 # rauc and the u-boot env tooling are machine-neutral; the slot devices they
 # act on are set per-machine in rauc-conf.bbappend.

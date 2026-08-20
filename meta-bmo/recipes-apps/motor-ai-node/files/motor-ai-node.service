@@ -1,0 +1,31 @@
+[Unit]
+Description=Motor AI inference node (guest-2)
+Documentation=https://github.com/PM-Maestro-ITI-GP-Org/motor_ai_server
+# Started before the service that signals it, so that the first completed
+# window finds a pid to signal. Not a hard dependency in the other direction:
+# motor_ai_server re-reads the pidfile before every stage, so a node that
+# starts late or restarts is picked up on the next window rather than needing
+# the service restarted with it.
+Before=motor-ai-server.service
+
+[Service]
+Type=simple
+Environment=MOTOR_AI_NODE_CONFIG=/etc/motor-ai-node/node.conf
+ExecStart=/usr/bin/motor_ai_node
+
+# The one line here that is not boilerplate.
+#
+# sig_rul defaults to SIGTERM, which is also what systemd sends to stop a
+# service -- so with the default KillSignal, `systemctl stop motor-ai-node`
+# would ask the node to run the remaining-useful-life model and then report a
+# timeout when it did not die. SIGINT is what the node treats as "stop".
+#
+# Setting sig_rul to SIGRTMIN in both node.conf and server.conf removes the
+# collision at the source, and this line can go back to the default.
+KillSignal=SIGINT
+
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -7,17 +7,22 @@ Documentation=https://github.com/PM-Maestro-ITI-GP-Org/motor_ai_server
 # without it the service loses a boot race roughly every time.
 After=network-setup.service
 Requires=network-setup.service
+# Only ordering. The service does not need the node to come up, and does not
+# fail without it: a window with no live pid in ai_pid_file is logged and the
+# previous verdict is kept. Wants= rather than Requires= says exactly that.
+Wants=motor-ai-node.service
+After=motor-ai-node.service
 
 [Service]
 Type=simple
 Environment=VSOMEIP_CONFIGURATION=/etc/motor-ai-server/vsomeip.json
 Environment=COMMONAPI_CONFIG=/etc/motor-ai-server/commonapi.ini
 Environment=MOTOR_AI_SERVER_CONFIG=/etc/motor-ai-server/server.conf
-# /var/lib/motor-ai, where the window CSVs handed to the AI app are written.
-# systemd creates it with the right ownership on every start, so the directory
-# is a property of the unit rather than something the daemon has to mkdir and
-# get the permissions right for. Must agree with csv_dir in server.conf.
-StateDirectory=motor-ai
+# StateDirectory is gone with the switch from exec-per-window to the signalled
+# node. The two programs now share /motor_data -- data_dir in both configs --
+# which is an absolute path outside /var and so not something StateDirectory
+# can manage. Both create it themselves at startup, and both run as root, so
+# whichever comes up first finds or makes it.
 ExecStart=/usr/bin/motor_ai_server
 # The service retries registerService() in a loop rather than exiting, so a
 # restart here is for genuine crashes only.

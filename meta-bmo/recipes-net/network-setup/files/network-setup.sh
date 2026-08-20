@@ -62,8 +62,23 @@ configure() {
 configured_guest_link=no
 
 if configure qhost0 10.0.1.2/24; then
-	# The host NATs this network onto the LAN; see pf.conf in the host image.
+	# The host NATs this network onto the LAN; see pf-nat.conf in the host
+	# image.
 	ip route replace default via 10.0.1.1 dev qhost0 || true
+
+	# ...and then every name lookup fails anyway unless something writes a
+	# resolver. Nothing does here: the address is static, so no DHCP client
+	# runs, and that is what normally produces this file. The symptom reads
+	# as a routing fault and is not one -- 8.8.8.8 answers, a hostname does
+	# not.
+	#
+	# Only when there is no nameserver already, so a resolver put here by
+	# hand, or by systemd-resolved on an image that has it, wins.
+	if ! grep -q "^nameserver" /etc/resolv.conf 2>/dev/null; then
+		printf 'nameserver 8.8.8.8\nnameserver 8.8.4.4\n' \
+			>> /etc/resolv.conf 2>/dev/null || true
+		echo "network-setup: wrote default nameservers to /etc/resolv.conf"
+	fi
 fi
 
 if configure qguest0 10.0.2.2/24; then
